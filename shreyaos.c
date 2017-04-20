@@ -210,6 +210,62 @@ void print_dataBitmaps(int fileSystemId)
 		}
 }
 
+int readData( int disk, int blockNum, void* block)
+{
+	// find file sytsem. assunimg 0th. find corr diskName.
+	int j=0,i,noBytes=0;
+	FILE *file;
+	file=fopen("disk.txt","r"); 
+		if(file==NULL)
+		{
+			printf("File System does not exist in the disk");
+			return;
+		}
+		else
+		{
+			//read line no. loc+8.
+			int count=0;
+			char line[10000];
+			while(fgets(line, sizeof(line),file) )
+			{
+				//printf("%s",line);
+				//strcpy(ans,line);
+				//printf("%s", ans);
+				if(count== filesystem[j].location+7+blockNum)
+				{
+					for(i=0;i<strlen(line);i++)
+					{
+						if(line[i]!='\n') 
+							{
+								printf("%c", line[i]);
+								noBytes+=1;
+							}
+					}
+					printf("\n");
+				}
+
+					count++;
+			}
+		}
+
+return noBytes;
+}
+
+int writeData( int disk, int blockNum, void* block)
+{
+	
+}
+
+int readFile( int disk, int blockNum, void* block)
+{
+	
+}
+
+int writeFile( int disk, int blockNum, void* block)
+{
+	
+}
+
 int main()
 {
 	// printf("1. Create a file system.\n2. Add a file to file system.\n3. Read from a file.\n4. Print the bitmaps of inodes in current file system.\n5.Print the bitmaps of datablocks in current file system. \n6.Print all the files in the file system ");
@@ -225,8 +281,9 @@ int main()
 	// 	default: {printf("Error");break;}
 	// }
 	//printf("here");
-	createSFS("disk.txt",64);
+//	createSFS("disk.txt",64);
 	print_dataBitmaps(0);
 	print_inodeBitmaps(0);
+	readData(0,1,NULL);
 	return 0;
 }
