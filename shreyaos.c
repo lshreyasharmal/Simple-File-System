@@ -3,8 +3,9 @@
 
 
 int fileSystemId = -1;
+int inodenumber =-1;
 char dbitmap[57];
-
+char ibitmap[161];
 struct DISK
 {
 	int diskNum;
@@ -17,7 +18,13 @@ struct FS
 	int fileSystemID;
 	int location;
 };
-
+struct inode
+{
+	int inodeNum;
+	struct FS fs;
+	char* filename;
+	int datablock;
+};
 struct FILEE
 {
 	char* filename;
@@ -25,24 +32,25 @@ struct FILEE
 	int inodeNum;
 };
 
-struct inode
-{
-	int inodeNum;
-	int filesize;
-	char[100] filename;
 
-};
 
 
 char buffer[1024*4];
-struct FILEE SFS[100];
+struct FILEE Files[100];
 struct FS filesystem[100];
 struct DISK disk[100];
-
-int createSFS( char* filename, int nbytes)
+struct inode Inode[160];
+int createFiles( char* filename, int nbytes)
 {
 
 	int i;
+	for(i=0;i<=100;i++)
+	{
+		Inode[i].inodeNum=-1;
+		filesystem[i].location=-1;
+		Files[i].filename="-1";
+		disk[i].diskName="-1";
+	}
 	for(i=0;i<=100;i++)
 	{
 
@@ -50,7 +58,7 @@ int createSFS( char* filename, int nbytes)
 		{
 			break;
 		}
-		else if (disk[i].diskName== NULL)
+		else if (disk[i].diskName== "-1")
 		{
 			disk[i].diskName=filename;
 			disk[i].diskNum=i;
@@ -62,7 +70,7 @@ int createSFS( char* filename, int nbytes)
 
 	for(i=0;i<=100;i++)
 	{
-		if(filesystem[i].location== NULL)
+		if(filesystem[i].location== -1)
 		{
 			filesystem[i].diskinuse=disk[i];
 			filesystem[i].fileSystemID=i;
@@ -75,15 +83,15 @@ int createSFS( char* filename, int nbytes)
 				str[i]= '0';
 			str[32]='\0';
 			fprintf(f,str);
-			fprintf(f,";");
+			//fprintf(f,";");
 			fprintf(f,str);
-			fprintf(f,";");
+			//fprintf(f,";");
 			fprintf(f,str);
-			fprintf(f,";");
+			//fprintf(f,";");
 			fprintf(f,str);
-			fprintf(f,";");
+			//fprintf(f,";");
 			fprintf(f,str);
-			fprintf(f,";");
+			//fprintf(f,";");
 			fprintf(f,"\n");
 			//fprintf(f, str+";"+ str+ ";" + str+ ";" + str + ";" + str+ "\n");
 			//data bitmap
@@ -111,6 +119,7 @@ int createSFS( char* filename, int nbytes)
 	}
 	return filesystem[i].fileSystemID;
 	//return 0;
+
 }
 
 void print_inodeBitmaps(int fileSystemId)
@@ -137,7 +146,8 @@ void print_inodeBitmaps(int fileSystemId)
 		else
 		{
 			//read line no. loc+2.
-			int count=0;
+			int count=0,k=0;
+			char ans[161];
 			char line[10000];
 			while(fgets(line, sizeof(line),file) )
 			{
@@ -153,10 +163,18 @@ void print_inodeBitmaps(int fileSystemId)
 								if(line[i]==';')
 									continue;
 								else
+								{
 									printf("%c", line[i]);
+									ans[k]=line[i];
+									k++;
+								}
 							}
+
 					}
+					ans[k]='\0';
+					strcpy (ibitmap,ans);
 					printf("\n");
+
 				}
 
 					count++;
@@ -171,9 +189,9 @@ void print_FileList(int fileSystemId)
 {
 	for (int i=0;i< 100;i++)
 	{
-		if(SFS[i].filename!= NULL && SFS[i].fs.fileSystemID==fileSystemId)
+		if(Files[i].filename!= -1 && Files[i].fs.fileSystemID==fileSystemId)
 		{
-			printf("%s\n",SFS[i].filename);
+			printf("%s\n",Files[i].filename);
 		}
 		else
 		{
@@ -274,7 +292,6 @@ int readData( int Disk, int blockNum, void* block)
 				if(count== blockNum-1)
 				{
 					 noBytes= strlen(line);
-					for(i=0;i<strlen(line);i++)
 					{
 						if(line[i]!='\n')
 							{
@@ -293,6 +310,7 @@ int readData( int Disk, int blockNum, void* block)
 }
 int writeData( int Disk, int blockNum, void* block)
 {
+	printf("block num : %d\n",blockNum );
 //	printf("\n%s",block);
 	FILE *file,*temp;
 		// get the disk and the location in the disk
@@ -309,9 +327,9 @@ int writeData( int Disk, int blockNum, void* block)
 		//open the disk
 		file=fopen(disk[j].diskName,"r");
 		temp=fopen("temp.txt","w");
-		if(file==NULL)
+		if(file==NULL || temp==NULL)
 		{
-			printf("Disk does not exist\n");
+			printf("Diskk does not exist\n");
 			return 0;
 		}
 		else
@@ -344,6 +362,65 @@ int writeData( int Disk, int blockNum, void* block)
 			return noBytes;
 
 }
+void writedata( int Disk, int blockNum, void* str)
+{
+	printf("b n %d\n",blockNum );
+//	printf("\n%s",block);
+	FILE *file;
+		// get the disk and the location in the disk
+		int i,j;
+		for(i=0;i<100;i++)
+		{
+			if(disk[i].diskNum==Disk)
+			{
+				j = i;
+				//printf("%d",j);
+				break;
+			}
+		}
+		//open the disk
+		file=fopen(disk[j].diskName,"r+");
+		if(file==NULL)
+		{
+			printf("Diskk does not exist\n");
+			return 0;
+		}
+		else
+		{
+			int ch;
+			int count=0;
+			//char line[10000];
+		//	printf("%d",ch);
+		int by=0;
+		ch = fgetc(file);
+			while(ch!=EOF)
+			{
+				if(ch=='\n')
+					count++;
+					by++;
+					//printf("%d %d\n",count,by );
+					//printf("%d %d\n",line,ch);
+					if(count==blockNum)
+						{
+							break;
+						}
+						ch = fgetc(file);
+			}
+			printf("%d \n",by-1 );
+			int h = fseek(file,by-1,SEEK_SET);
+			printf("%s\n",str );
+			fwrite(str,1,strlen(str),file);
+			fclose(file);
+
+		}
+		//	printf("%d\n",ch );
+			// int h = fseek(file,by-1,SEEK_SET);
+			// fwrite(block,1,strlen(buffer),file);
+
+			// int noBytes = strlen(buffer);
+			// return noBytes;
+
+}
 
 int readFile( int disk, int blockNum, void* block)
 {
@@ -355,31 +432,82 @@ int writeFile( int Disk, int blockNum, void* block)
 	int i,j,bitmap;
 	for(i=0;i<100;i++)
 	{
-		if(SFS[i].filename== NULL)
-		{
-			int fsid= blockNum/64;
-			SFS[i].fs.fileSystemID=fsid;
-			SFS[i].fs.location= fsid*64;
-			SFS[i].fs.diskinuse.diskNum=Disk;
-			for(j=0;j<100;j++)
-			{
-				if(disk[i].diskNum== Disk)
-					SFS[i].fs.diskinuse.diskName=disk[i].diskName;
+				if(Inode[i].inodeNum==-1)
+				{
+					int fsid= blockNum/64;
+					Inode[i].fs.fileSystemID=fsid;
+					Inode[i].fs.location= fsid*64;
+					Inode[i].fs.diskinuse.diskNum=Disk;
+					for(j=0;j<100;j++)
+					{
+						if(disk[i].diskNum== Disk)
+							Inode[i].fs.diskinuse.diskName=disk[i].diskName;
+					}
+					Inode[i].inodeNum=++inodenumber;
+					// printf("%d\n",Inode[i].inodeNum );
+					// printf("%d\n",i );
+					ibitmap[i]='1';
+
+					writeData(Disk,fsid+2,ibitmap);
+					char str[100],s1[20],s2[20],s3[20],s4[20],s5[20];
+					sprintf(str,"%d",Inode[i].inodeNum);
+
+					strcat(str," ");
+					// //filename
+					sprintf(s1,"%d",Inode[i].fs.fileSystemID);
+					 strcat(str,s1);strcat(str," ");
+					sprintf(s2,"%d",Inode[i].fs.location);
+					 strcat(str,s2);strcat(str," ");
+					 sprintf(s3,"%d",	Inode[i].fs.diskinuse.diskNum);
+					 strcat(str,s3);strcat(str," ");
+					//  sprintf(s4,"%d",Inode[i].fs.diskinuse.diskName);
+					 strcat(str,Inode[i].fs.diskinuse.diskName);strcat(str," ");
+					 Inode[i].datablock = blockNum;
+					 sprintf(s5,"%d",Inode[i].datablock);
+					 strcat(str,s5);
+					 strcat(str,";");
+
+
+					//  strcpy(buffer,str);
+					//printf("%s %d\n","ye lo :",(i/32)+4 );
+
+					 writedata(Disk,(i/32)+4,str);
+						//printf("heyy : %s\n",ibitmap);
+						break;
+				}
 			}
+	for(i=0;i<100;i++)
+	{
+
+			// int inodeNum;
+			// int filesize;
+			// int datblock;
+			// char[100] filename;
+
 			//set data bitmap to 1.
 			//find the 1st 0 in the bitmap string and set it to 1.
 			//read the file, read the data bitmap line, create the new string, replace it with the new string.
-
+			if(Files[i].filename== "-1")
+			{
+				int fsid= blockNum/64;
+				Files[i].fs.fileSystemID=fsid;
+				Files[i].fs.location= fsid*64;
+				Files[i].fs.diskinuse.diskNum=Disk;
+				for(j=0;j<100;j++)
+				{
+					if(disk[i].diskNum== Disk)
+						Files[i].fs.diskinuse.diskName=disk[i].diskName;
+				}
 				dbitmap[blockNum-1]='1';
-				printf("%c",dbitmap[blockNum]);
+		//		printf("%c",dbitmap[blockNum]);
 			//location to change bitmap at:
-			//int loc= SFS[i].fs.location + 2;
-			printf("%s",dbitmap);
+			//int loc= Files[i].fs.location + 2;
+			//printf("%s",dbitmap);
 
 			//0 based.
 			//we'll do it as well in writeData.
 			//update inodes.
-			printf("%s",block);
+			// printf("%s",block);
 			writeData(Disk,blockNum,block);
 		//	printf("%d",fsid+3);
 			for(int i=0;i<100;i++)
@@ -387,8 +515,9 @@ int writeFile( int Disk, int blockNum, void* block)
 				buffer[i]=dbitmap[i];
 			}
 			writeData(Disk,fsid+3,block);
+			break;
 		}
-		break;
+
 	}
 	return bitmap;
 }
@@ -399,7 +528,7 @@ int main()
 	// int choice; scanf("%d",&choice);
 	// switch(choice)
 	// {
-	// 	case 1 : {printf("Enter diskname: ");char arr[100]; scanf("%s",&arr); printf("Enter no. of bytes you want to allocate to the disk.")  int nBytes; scanf("%d", &nBytes); createSFS(arr,nBytes);}
+	// 	case 1 : {printf("Enter diskname: ");char arr[100]; scanf("%s",&arr); printf("Enter no. of bytes you want to allocate to the disk.")  int nBytes; scanf("%d", &nBytes); createFiles(arr,nBytes);}
 	// 	case 2 : {}
 	// 	case 3 : {}
 	// 	case 4 : {printf("Enter the file system id: "); int x; scanf("%d",&x); printf("The following are bitmaps of inodes:\n"); inodeBitmaps(x); break;}
@@ -408,7 +537,7 @@ int main()
 	// 	default: {printf("Error");break;}
 	// }
 	//printf("here");
-	createSFS("disk.txt",64);
+	createFiles("disk.txt",64);
 	print_dataBitmaps(0);
 	print_inodeBitmaps(0);
 	char* block = buffer;
@@ -418,8 +547,19 @@ int main()
 	strcpy(buffer,"SHREYAAA");
 	// t = writeData(0,13,block);
 int x= writeFile(0,13,block);
-strcpy(buffer,"HWLLO");
-int t = writeData(0,15,block);
+
+strcpy(buffer,"HELLO");
+print_dataBitmaps(0);
+print_inodeBitmaps(0);
+ x= writeFile(0,14,block);
+ strcpy(buffer,"Joo");
+ print_dataBitmaps(0);
+ print_inodeBitmaps(0);
+ x= writeFile(0,18,block);
+ print_dataBitmaps(0);
+ print_inodeBitmaps(0);
+
+//int t = writeData(0,15,block);
 	// printf("%s\n",buffer );
 	return 0;
 }
