@@ -310,7 +310,7 @@ int readData( int Disk, int blockNum, void* block)
 }
 int writeData( int Disk, int blockNum, void* block)
 {
-	printf("block num : %d\n",blockNum );
+	//printf("block num : %d\n",blockNum );
 //	printf("\n%s",block);
 	FILE *file,*temp;
 		// get the disk and the location in the disk
@@ -364,9 +364,9 @@ int writeData( int Disk, int blockNum, void* block)
 }
 void writedata( int Disk, int blockNum, void* str)
 {
-	printf("b n %d\n",blockNum );
-//	printf("\n%s",block);
-	FILE *file;
+	//printf("block num : %d\n",blockNum );
+	//	printf("\n%s",block);
+	FILE *file,*temp;
 		// get the disk and the location in the disk
 		int i,j;
 		for(i=0;i<100;i++)
@@ -379,46 +379,42 @@ void writedata( int Disk, int blockNum, void* str)
 			}
 		}
 		//open the disk
-		file=fopen(disk[j].diskName,"r+");
-		if(file==NULL)
+		file=fopen(disk[j].diskName,"r");
+		temp=fopen("temp.txt","w");
+		if(file==NULL || temp==NULL)
 		{
 			printf("Diskk does not exist\n");
 			return 0;
 		}
 		else
 		{
-			int ch;
 			int count=0;
-			//char line[10000];
+			char line[10000];
 		//	printf("%d",ch);
-		int by=0;
-		ch = fgetc(file);
-			while(ch!=EOF)
+			while((fgets(line, sizeof(line),file)))
 			{
-				if(ch=='\n')
 					count++;
-					by++;
-					//printf("%d %d\n",count,by );
 					//printf("%d %d\n",line,ch);
 					if(count==blockNum)
 						{
-							break;
+							strcat(line,str);
+							fprintf(temp,line);
+					//	fprintf(temp,"\n");
 						}
-						ch = fgetc(file);
-			}
-			printf("%d \n",by-1 );
-			int h = fseek(file,by-1,SEEK_SET);
-			printf("%s\n",str );
-			fwrite(str,1,strlen(str),file);
-			fclose(file);
 
-		}
+					else
+					{//printf("%s\n",line );
+							fprintf(temp,line);
+						}
+			}}
 		//	printf("%d\n",ch );
 			// int h = fseek(file,by-1,SEEK_SET);
 			// fwrite(block,1,strlen(buffer),file);
-
-			// int noBytes = strlen(buffer);
-			// return noBytes;
+			rename("temp.txt",disk[j].diskName);
+			fclose(file);
+			fclose(temp);
+			int noBytes = strlen(buffer);
+			return noBytes;
 
 }
 
@@ -470,7 +466,9 @@ int writeFile( int Disk, int blockNum, void* block)
 
 					//  strcpy(buffer,str);
 					//printf("%s %d\n","ye lo :",(i/32)+4 );
-
+					printf("%s\n","This should print the whole inode" );
+					printf("%s\n",str );
+					//writeData(Disk,(i/32)+4,str);
 					 writedata(Disk,(i/32)+4,str);
 						//printf("heyy : %s\n",ibitmap);
 						break;
@@ -538,27 +536,37 @@ int main()
 	// }
 	//printf("here");
 	createFiles("disk.txt",64);
+// 	print_dataBitmaps(0);
+// 	print_inodeBitmaps(0);
+	char* block = buffer;
+// 	// strcpy(buffer,"shreya");
+// 	//int K = readData(0,12,block);
+// 	//int t = writeData(0,13,block);
+// 	strcpy(buffer,"SHREYAAA");
+// 	// t = writeData(0,13,block);
+// int x= writeFile(0,13,block);
+//
+// strcpy(buffer,"HELLO");
+// print_dataBitmaps(0);
+// print_inodeBitmaps(0);
+//  x= writeFile(0,14,block);
+//  strcpy(buffer,"Joo");
+//  print_dataBitmaps(0);
+//  print_inodeBitmaps(0);
+//  x= writeFile(0,18,block);
+//  print_dataBitmaps(0);
+//  print_inodeBitmaps(0);
+
+int i;
+for(i=0;i<33;i++)
+{
+	printf("%d\n",i );
+	strcpy(buffer,"HELLO");
 	print_dataBitmaps(0);
 	print_inodeBitmaps(0);
-	char* block = buffer;
-	// strcpy(buffer,"shreya");
-	//int K = readData(0,12,block);
-	//int t = writeData(0,13,block);
-	strcpy(buffer,"SHREYAAA");
-	// t = writeData(0,13,block);
-int x= writeFile(0,13,block);
-
-strcpy(buffer,"HELLO");
-print_dataBitmaps(0);
-print_inodeBitmaps(0);
- x= writeFile(0,14,block);
- strcpy(buffer,"Joo");
- print_dataBitmaps(0);
- print_inodeBitmaps(0);
- x= writeFile(0,18,block);
- print_dataBitmaps(0);
- print_inodeBitmaps(0);
-
+	int 	x= writeFile(0,i+9,block);
+}
+	//createFiles("disk.txt",64);
 //int t = writeData(0,15,block);
 	// printf("%s\n",buffer );
 	return 0;
