@@ -257,7 +257,6 @@ void print_dataBitmaps(int fileSystemId)
 
 int readData( int Disk, int blockNum, void* block)
 {
-	// printf("roooo\n" );
 	FILE *file;
 		// get the disk and the location in the disk
 		int i,j;
@@ -272,41 +271,33 @@ int readData( int Disk, int blockNum, void* block)
 		}
 		//open the disk
 		file=fopen(disk[j].diskName,"r");
-		if(file==NULL)
+
+		if(file==NULL )
 		{
-			printf("Disk does not exist\n");
+			printf("Diskk does not exist\n");
 			return 0;
 		}
 		else
 		{
-			//read line no. loc+2.
 			int count=0;
 			char line[10000];
-			int noBytes;
-			while(fgets(line, sizeof(line),file) )
+		//	printf("%d",ch);
+			while((fgets(line, sizeof(line),file)))
 			{
-				//printf("%s",line);
-				//strcpy(ans,line);
-				//printf("%s", ans);
-				int u=0;
-				if(count== blockNum-1)
-				{
-					 noBytes= strlen(line);
-					{
-						if(line[i]!='\n')
-							{
-									// printf("%c", line[i]);
-									buffer[u]=line[i];
-									u++;
-							}
-					}
-					printf("\n");
-				}
-
 					count++;
+					//printf("%d %d\n",line,ch);
+					if(count==blockNum)
+						{
+							strcpy(buffer,line);
+						}
 			}
+		}
+
+			fclose(file);
+
+			int noBytes = strlen(buffer);
 			return noBytes;
-}
+
 }
 int writeData( int Disk, int blockNum, void* block)
 {
@@ -418,9 +409,17 @@ void writedata( int Disk, int blockNum, void* str)
 
 }
 
-int readFile( int disk, int blockNum, void* block)
+int readFile( int disk,int iNumofFile, void* block)
 {
-
+	int i;
+	for(i=0;i<100;i++)
+	{
+		if(Inode[i].inodeNum==iNumofFile)
+		{
+			readData(disk,Inode[i].datablock,block);
+			printf("read huya ? %s\n",buffer );
+		}
+	}
 }
 
 int writeFile( int Disk, int blockNum, void* block)
@@ -566,7 +565,8 @@ for(i=0;i<33;i++)
 	print_inodeBitmaps(0);
 	int 	x= writeFile(0,i+9,block);
 }
-	//createFiles("disk.txt",64);
+int y=readFile(0,17,block);
+
 //int t = writeData(0,15,block);
 	// printf("%s\n",buffer );
 	return 0;
